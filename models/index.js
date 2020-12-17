@@ -23,6 +23,6 @@ db.once('open',()=>{
 db.on('error',(error)=>{
     console.log(`database error\n ${error}`)
 })
-// const User = require('./User')
+const User = require('./User')
 
-// module.exports = User
+module.exports = User
