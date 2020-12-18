@@ -5,6 +5,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
 const passport = require('passport');
+const JWT_SECRET = process.env.JWT_SECRET
 // Models
 const db = require('../models');
 // GET api/users/test (Public)
@@ -45,4 +46,45 @@ router.post('/register', (req, res) => {
         }
     })
 })
+//post for api/users/login
+router.post('/login',(req,res)=>{
+    const email = req.body.email
+    const password = req.body.password
+
+    //find a user via email
+    db.User.findOne({email})
+    .then(user =>{
+        if (!user){
+            res.status(400).json({msg: 'user not found'})
+        }else {
+            bycrpt.compare(password, user.password)
+            .then(isMatch =>{
+                if (isMatch) {
+                    console.log(isMatch)
+                    const payload = {
+                        id: user.id,
+                        email: user.email,
+                        name: user.name
+                    }
+                    //sign token
+                    jwt.sign(payload, JWT_SECRET,{expiresIn: '1h'})
+                    res.json({
+                        success: true,
+                        token: `Barrier ${token} `
+                    })
+                }else {
+                    return res.status(400).json({password: `email or password is incorrect`})
+                }
+            })
+        }
+    })
+})
+
+//GET route api/users/curent (private)
+router.get('/current',passport.authenticate('JWT', {session: false}),(req,res)=>{
+    res.json({
+        id: req.user.id
+    })
+}
+
 module.exports = router;
